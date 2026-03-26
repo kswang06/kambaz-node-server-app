@@ -14,7 +14,18 @@ import EnrollmentsRoutes from "./kambaz/enrollments/routes.js";
 const app = express()
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        origin === "http://localhost:3000" ||
+        origin === process.env.CLIENT_URL ||
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
