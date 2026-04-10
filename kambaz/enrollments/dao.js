@@ -1,50 +1,40 @@
 import { v4 as uuidv4 } from "uuid";
+import model from "./model.js";
 
 export default function EnrollmentsDao(db) {
-  function findEnrollmentsForUser(userId) {
-    const { enrollments } = db;
-    return enrollments.filter((enrollment) => enrollment.user === userId);
+  async function findEnrollmentsForUser(userId) {
+    const enrollments = await model.find({ user: userId }).populate("course");
+    return enrollments.map((enrollment) => enrollment.course);
   }
 
-  function findEnrollmentsForCourse(courseId) {
-    const { enrollments } = db;
-    return enrollments.filter((enrollment) => enrollment.course === courseId);
+  async function findEnrollmentsForCourse(courseId) {
+    const enrollments = await model.find({ course: courseId }).populate("user");
+    return enrollments.map((enrollment) => enrollment.user);
   }
 
   function enrollUserInCourse(userId, courseId) {
-    const { enrollments } = db;
+    return model.create({
+     user: userId,
+     course: courseId,
+     _id: `${userId}-${courseId}`,
+   });
 
-    const existingEnrollment = enrollments.find(
-      (enrollment) =>
-        enrollment.user === userId && enrollment.course === courseId
-    );
-
-    if (existingEnrollment) {
-      return existingEnrollment;
-    }
-
-    const newEnrollment = {
-      _id: uuidv4(),
-      user: userId,
-      course: courseId,
-    };
-
-    db.enrollments = [...db.enrollments, newEnrollment];
-    return newEnrollment;
   }
 
   function unenrollUserFromCourse(userId, courseId) {
-    const { enrollments } = db;
-    db.enrollments = enrollments.filter(
-      (enrollment) =>
-        !(enrollment.user === userId && enrollment.course === courseId)
-    );
+    return model.deleteOne({ user: userId, course: courseId });
   }
+
+  function unenrollAllUsersFromCourse(courseId) {
+    return model.deleteMany({ course: courseId });
+  }
+
 
   return {
     findEnrollmentsForUser,
     findEnrollmentsForCourse,
     enrollUserInCourse,
     unenrollUserFromCourse,
+    unenrollAllUsersFromCourse,
   };
 }
