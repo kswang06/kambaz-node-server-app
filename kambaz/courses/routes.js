@@ -1,8 +1,29 @@
 import CoursesDao from "./dao.js";
 import EnrollmentsDao from "../enrollments/dao.js";
+import QuizzesDao from "../quizzes/dao.js";
+import QuizAttemptsDao from "../quiz-attempts/dao.js";
 export default function CourseRoutes(app) {
   const dao = CoursesDao();
   const enrollmentsDao = EnrollmentsDao();
+  const quizzesDao = QuizzesDao();
+  const quizAttemptsDao = QuizAttemptsDao();
+
+  const requireFacultyForCourse = async (req, res, courseId) => {
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return null;
+    }
+    const isEnrolled = await enrollmentsDao.isUserEnrolledInCourse(
+      currentUser._id,
+      courseId
+    );
+    if (!isEnrolled || !["FACULTY", "ADMIN"].includes(currentUser.role)) {
+      res.sendStatus(403);
+      return null;
+    }
+    return currentUser;
+  };
 
   const findAllCourses = async (req, res) => {
     const courses = await dao.findAllCourses();
@@ -10,7 +31,21 @@ export default function CourseRoutes(app) {
   };
 
   const createCourse = async (req, res) => {
-    const course = await dao.createCourse(req.body);
+    const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      res.sendStatus(401);
+      return;
+    }
+    if (currentUser.role !== "FACULTY") {
+      res.status(403).json({ message: "Only faculty can create courses" });
+      return;
+    }
+
+    const course = await dao.createCourse({
+      ...req.body,
+      createdBy: currentUser._id,
+    });
+    await enrollmentsDao.enrollUserInCourse(currentUser._id, course._id);
     res.json(course);
   };
 
@@ -30,6 +65,12 @@ export default function CourseRoutes(app) {
 
   const deleteCourse = async (req, res) => {
     const { courseId } = req.params;
+    const currentUser = await requireFacultyForCourse(req, res, courseId);
+    if (!currentUser) {
+      return;
+    }
+    await quizAttemptsDao.deleteAttemptsForCourse(courseId);
+    await quizzesDao.deleteQuizzesForCourse(courseId);
     await enrollmentsDao.unenrollAllUsersFromCourse(courseId);
     const status = await dao.deleteCourse(courseId);
     res.send(status);
@@ -37,6 +78,10 @@ export default function CourseRoutes(app) {
 
   const updateCourse = async (req, res) => {
     const { courseId } = req.params;
+    const currentUser = await requireFacultyForCourse(req, res, courseId);
+    if (!currentUser) {
+      return;
+    }
     const courseUpdates = req.body;
     const status = await dao.updateCourse(courseId, courseUpdates);
     res.send(status);
