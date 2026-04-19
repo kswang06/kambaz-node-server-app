@@ -40,9 +40,9 @@ export default function AssignmentRoutes(app) {
     res.sendStatus(204);
   };
 
-  const deleteAssignment = (req, res) => {
+  const deleteAssignment = async (req, res) => {
     const { assignmentId } = req.params;
-    dao.deleteAssignment(assignmentId);
+    await dao.deleteAssignment(assignmentId);
     res.sendStatus(204);
   };
 

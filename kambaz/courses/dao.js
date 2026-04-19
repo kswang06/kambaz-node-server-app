@@ -1,25 +1,24 @@
 import { v4 as uuidv4 } from "uuid";
 import model from "./model.js";
+import EnrollmentsDao from "../enrollments/dao.js";
 
 export default function CoursesDao() {
+  const enrollmentsDao = EnrollmentsDao();
+
   function findAllCourses() {
-    return model.find({}, { name: 1, description: 1 });
+    return model.find();
   }
 
   async function findCoursesForEnrolledUser(userId) {
-  const enrolledCourses = courses.filter((course) =>
-    enrollments.some(
-      (enrollment) =>
-        enrollment.user === userId && enrollment.course === course._id
-    )
-  );
-  return enrolledCourses;
+    return enrollmentsDao.findEnrollmentsForUser(userId);
   }
 
+  function findCourseById(courseId) {
+    return model.findById(courseId);
+  }
 
   function createCourse(course) {
-    const newCourse = { ...course, _id: uuidv4() };
-    return model.create(newCourse);
+    return model.create({ ...course, _id: course._id || uuidv4() });
   }
 
   function deleteCourse(courseId) {
@@ -33,6 +32,7 @@ export default function CoursesDao() {
   return {
     findAllCourses,
     findCoursesForEnrolledUser,
+    findCourseById,
     createCourse,
     deleteCourse,
     updateCourse,

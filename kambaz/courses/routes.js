@@ -14,11 +14,23 @@ export default function CourseRoutes(app) {
       res.sendStatus(401);
       return null;
     }
-    const isEnrolled = await enrollmentsDao.isUserEnrolledInCourse(
-      currentUser._id,
-      courseId
-    );
-    if (!isEnrolled || !["FACULTY", "ADMIN"].includes(currentUser.role)) {
+
+    if (currentUser.role === "ADMIN") {
+      return currentUser;
+    }
+
+    const course = await dao.findCourseById(courseId);
+    if (!course) {
+      res.sendStatus(404);
+      return null;
+    }
+
+    const canManageCourse =
+      currentUser.role === "FACULTY" &&
+      (course.createdBy === currentUser._id ||
+        (await enrollmentsDao.isUserEnrolledInCourse(currentUser._id, courseId)));
+
+    if (!canManageCourse) {
       res.sendStatus(403);
       return null;
     }
