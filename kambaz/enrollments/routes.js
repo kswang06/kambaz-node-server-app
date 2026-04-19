@@ -39,7 +39,7 @@ export default function EnrollmentsRoutes(app) {
       return res.sendStatus(401);
     }
 
-    const enrollments = await dao.findEnrollmentsForUser(currentUser._id);
+    const enrollments = await dao.findEnrollmentRecordsForUser(currentUser._id);
     res.json(enrollments);
   };
 

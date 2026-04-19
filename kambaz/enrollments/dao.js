@@ -5,6 +5,10 @@ export default function EnrollmentsDao() {
     return model.findOne({ user: userId, course: courseId });
   }
 
+  async function findEnrollmentRecordsForUser(userId) {
+    return model.find({ user: userId });
+  }
+
   async function findEnrollmentsForUser(userId) {
     const enrollments = await model.find({ user: userId }).populate("course");
     return enrollments.map((enrollment) => enrollment.course);
@@ -43,6 +47,7 @@ export default function EnrollmentsDao() {
 
   return {
     findEnrollment,
+    findEnrollmentRecordsForUser,
     findEnrollmentsForUser,
     findEnrollmentsForCourse,
     isUserEnrolledInCourse,

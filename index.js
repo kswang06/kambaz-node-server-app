@@ -13,10 +13,12 @@ import ModulesRoutes from "./kambaz/modules/routes.js";
 import AssignmentRoutes from "./kambaz/assignments/routes.js";
 import EnrollmentsRoutes from "./kambaz/enrollments/routes.js";
 import QuizzesRoutes from "./kambaz/quizzes/routes.js";
+import seedDatabase from "./kambaz/seedDatabase.js";
 
 const CONNECTION_STRING =
   process.env.DATABASE_CONNECTION_STRING || "mongodb://127.0.0.1:27017/kambaz";
-mongoose.connect(CONNECTION_STRING);
+await mongoose.connect(CONNECTION_STRING);
+await seedDatabase();
 
 const app = express();
 const isProduction =
