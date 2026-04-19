@@ -8,12 +8,15 @@ export default function ModulesDao(db) {
 
   async function createModule(courseId, module) {
     const newModule = { ...module, _id: uuidv4() };
-    const status = await model.updateOne(
+    await model.updateOne(
      { _id: courseId },
      { $push: { modules: newModule } }
-   );
-
-    return newModule;
+    );
+    const updatedCourse = await model.findOne(
+      { _id: courseId, "modules._id": newModule._id },
+      { "modules.$": 1 }
+    );
+    return updatedCourse?.modules?.[0] || null;
   }
 
   async function deleteModule(courseId, moduleId) {
