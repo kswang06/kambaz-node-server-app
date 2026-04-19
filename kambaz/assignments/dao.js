@@ -11,11 +11,12 @@ export default function AssignmentsDao() {
     model.create({ ...assignment, _id: uuidv4() });
 
   const updateAssignment = async (assignmentId, assignmentUpdates) => {
-    const result = await model.updateOne(
-      { _id: assignmentId },
-      { $set: assignmentUpdates }
+    const updatedAssignment = await model.findByIdAndUpdate(
+      assignmentId,
+      { $set: assignmentUpdates },
+      { new: true }
     );
-    return result.modifiedCount > 0 || result.nModified > 0;
+    return updatedAssignment;
   };
 
   const deleteAssignment = (assignmentId) =>

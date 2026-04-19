@@ -37,12 +37,12 @@ export default function AssignmentRoutes(app) {
     if (!updatedAssignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
-    res.sendStatus(204);
+    res.json(updatedAssignment);
   };
 
-  const deleteAssignment = (req, res) => {
+  const deleteAssignment = async (req, res) => {
     const { assignmentId } = req.params;
-    dao.deleteAssignment(assignmentId);
+    await dao.deleteAssignment(assignmentId);
     res.sendStatus(204);
   };
 
