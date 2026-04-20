@@ -15,7 +15,7 @@ export default function CourseRoutes(app) {
       return null;
     }
 
-    if (currentUser.role === "ADMIN") {
+    if (currentUser.role === "ADMIN" || currentUser.role === "FACULTY") {
       return currentUser;
     }
 
@@ -25,16 +25,8 @@ export default function CourseRoutes(app) {
       return null;
     }
 
-    const canManageCourse =
-      currentUser.role === "FACULTY" &&
-      (course.createdBy === currentUser._id ||
-        (await enrollmentsDao.isUserEnrolledInCourse(currentUser._id, courseId)));
-
-    if (!canManageCourse) {
-      res.sendStatus(403);
-      return null;
-    }
-    return currentUser;
+    res.sendStatus(403);
+    return null;
   };
 
   const findAllCourses = async (req, res) => {
